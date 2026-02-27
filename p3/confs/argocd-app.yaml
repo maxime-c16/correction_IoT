@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: macauchy-app
+  namespace: argocd
+spec:
+  # Project defines the boundaries for this app
+  project: default
+
+  # Source tells Argo CD where to get the manifests
+  source:
+    repoURL: https://github.com/maxime-c16/inception_of_things.git
+    targetRevision: HEAD  # Always use the latest commit on this branch
+    path: p3/confs        # Watch this directory for manifests
+
+  # Destination tells Argo CD where to deploy
+  destination:
+    server: https://kubernetes.default.svc  # Local cluster
+    namespace: dev                           # Deploy to dev namespace
+
+  # Sync policy defines automatic behavior
+  syncPolicy:
+    automated:
+      prune: true     # Delete resources that are removed from Git
+      selfHeal: true  # Automatically sync if cluster drifts from Git
+    syncOptions:
+    - CreateNamespace=true  # Create the namespace if it doesn't exist
