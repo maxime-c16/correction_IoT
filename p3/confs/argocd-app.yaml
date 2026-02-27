@@ -9,7 +9,8 @@ spec:
 
   # Source tells Argo CD where to get the manifests
   source:
-    repoURL: https://github.com/maxime-c16/inception_of_things.git
+    # repoURL: https://github.com/maxime-c16/inception_of_things.git
+    repoURL: git@vogsphere.42paris.fr:vogsphere/intra-uuid-606f8e30-d80d-4877-9370-6338e064e3ba-7284177-mcauchy-
     targetRevision: HEAD  # Always use the latest commit on this branch
     path: p3/confs        # Watch this directory for manifests
 
