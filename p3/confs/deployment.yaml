@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: macauchy-app
+  namespace: dev
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: macauchy-app
+  template:
+    metadata:
+      labels:
+        app: macauchy-app
+    spec:
+      containers:
+      - name: app
+        image: wil42/playground:v1
+        ports:
+        - containerPort: 8888
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8888
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8888
+          initialDelaySeconds: 5
+          periodSeconds: 5
