@@ -1,0 +1,42 @@
+# ===========================================================================
+# Ingress Configuration
+# ===========================================================================
+# This YAML file defines an Ingress resource that routes traffic to three different
+# applications (app-one, app-two, and app-three) based on the host header. The
+# Ingress uses the Traefik ingress controller and directs traffic to the appropriate
+# services based on the specified rules.
+# ===========================================================================
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: main-ingress
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: app1.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: app-one
+            port: { number: 80 }
+  - host: app2.com
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: app-two
+              port: { number: 80 }
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: app-three
+            port: { number: 80 }

@@ -1,0 +1,74 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+require "fileutils"
+require "securerandom"
+
+SERVER_NAME = "mcauchyS"
+WORKER_NAME = "mcauchySW"
+SERVER_IP = "192.168.56.110"
+WORKER_IP = "192.168.56.111"
+TOKEN_FILE = File.expand_path("shared/token", __dir__)
+
+FileUtils.mkdir_p(File.dirname(TOKEN_FILE))
+token_value = if File.exist?(TOKEN_FILE)
+  File.read(TOKEN_FILE).to_s.strip
+else
+  ""
+end
+
+unless token_value.match?(/^[A-Za-z0-9]{20,}$/)
+  token_value = SecureRandom.hex(24)
+  File.write(TOKEN_FILE, "#{token_value}\n")
+end
+
+K3S_TOKEN = token_value
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "generic/ubuntu2204"
+  config.vm.boot_timeout = 600
+  config.vm.box_check_update = false
+
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  # Shared folder for token exchange between server and worker
+  config.vm.synced_folder "./shared", "/vagrant_shared", create: true
+
+  # Server (Controller) configuration
+  config.vm.define SERVER_NAME do |server|
+    server.vm.hostname = SERVER_NAME
+    server.vm.network "private_network", ip: SERVER_IP
+
+    server.vm.provider "libvirt" do |lv|
+      lv.driver = "qemu"
+      lv.memory = "1024"
+      lv.cpus = 2
+
+    end
+
+    server.vm.provision "shell", path: "scripts/install_k3s_server.sh", 
+      env: {
+        "SERVER_IP" => SERVER_IP,
+        "K3S_TOKEN" => K3S_TOKEN
+      }
+  end
+  
+  # ServerWorker (worker) configuration
+  config.vm.define WORKER_NAME do |worker|
+    worker.vm.hostname = WORKER_NAME
+    worker.vm.network "private_network", ip: WORKER_IP
+
+    worker.vm.provider "libvirt" do |lv|
+      lv.driver = "qemu"
+      lv.memory = "1024"
+      lv.cpus = 2
+    end
+
+    worker.vm.provision "shell", path: "scripts/install_k3s_worker.sh",
+      env: {
+        "SERVER_IP" => SERVER_IP,
+        "WORKER_IP" => WORKER_IP,
+        "K3S_TOKEN" => K3S_TOKEN
+      }
+  end
+end
