@@ -81,6 +81,18 @@ deploy: argocd
 
 # Verify v1 is running
 verify: deploy
+	@echo "[→] Checking current version..."
+	@CURRENT_VERSION=$$(grep "image: wil42/playground" confs/deployment.yaml | grep -o 'v[0-9]' || echo "unknown"); \
+	if [ "$$CURRENT_VERSION" = "v2" ]; then \
+		echo "[⚠] v2 is currently deployed. Resetting to v1..."; \
+		sed -i 's/wil42\/playground:v2/wil42\/playground:v1/g' confs/deployment.yaml; \
+		git add confs/deployment.yaml; \
+		git commit -m "reset: deploy v1 image for verification" || echo "(Already committed)"; \
+		git push origin $(GIT_BRANCH); \
+		echo "[→] Waiting for Argo CD to sync..."; \
+		sleep 10; \
+		kubectl rollout status deployment/macauchy-app -n $(DEV_NS) --timeout=2m || true; \
+	fi
 	@echo "[→] Verifying v1 is running..."
 	@for i in 1 2 3; do \
 		kubectl port-forward svc/$(APP_NAME) -n $(DEV_NS) 8888:8888 > /dev/null 2>&1 & \
@@ -184,7 +196,7 @@ status:
 	@echo "  Password: $$(kubectl -n $(ARGOCD_NS) get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" 2>/dev/null | base64 -d)"
 
 # Full setup
-setup: cluster argocd deploy verify
+setup: cluster argocd deploy
 	@echo ""
 	@echo "=== Setup Complete ==="
 	@echo "Part 3 is ready! Use 'make upgrade' to test the v1→v2 GitOps workflow"
