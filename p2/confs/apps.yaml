@@ -8,14 +8,14 @@
 # port 5678.
 # ===========================================================================
 
-apiVersion: apps/v1 # this line specifies the API version
-kind: Deployment # this line specifies the kind of resource
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: app-one
 spec:
   replicas: 1
   selector:
-    matchLabels: # this line specifies the labels to match
+    matchLabels:
       app: app-one
   template:
     metadata:
@@ -28,8 +28,8 @@ spec:
         args: ["-text=Hello from App One"]
         ports: [{ containerPort: 5678 }]
 ---
-apiVersion: v1 # this line specifies the API version
-kind: Service # this line specifies the kind of resource
+apiVersion: v1
+kind: Service
 metadata:
   name: app-one
 spec:
@@ -37,14 +37,14 @@ spec:
     app: app-one
   ports: [{ port: 80, targetPort: 5678 }]
 ---
-apiVersion: apps/v1 # this line specifies the API version
-kind: Deployment # this line specifies the kind of resource
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: app-two
 spec:
   replicas: 3
   selector:
-    matchLabels: # this line specifies the labels to match
+    matchLabels:
       app: app-two
   template:
     metadata:
@@ -57,8 +57,8 @@ spec:
         args: ["-text=Hello from App Two"]
         ports: [{ containerPort: 5678 }]
 ---
-apiVersion: v1 # this line specifies the API version
-kind: Service # this line specifies the kind of resource
+apiVersion: v1
+kind: Service
 metadata:
   name: app-two
 spec:
@@ -66,14 +66,14 @@ spec:
     app: app-two
   ports: [{ port: 80, targetPort: 5678 }]
 ---
-apiVersion: apps/v1 # this line specifies the API version
-kind: Deployment # this line specifies the kind of resource
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: app-three
 spec:
   replicas: 1
   selector:
-    matchLabels: # this line specifies the labels to match
+    matchLabels:
       app: app-three
   template:
     metadata:
@@ -86,8 +86,8 @@ spec:
         args: ["-text=Hello from App Three"]
         ports: [{ containerPort: 5678 }]
 ---
-apiVersion: v1 # this line specifies the API version
-kind: Service # this line specifies the kind of resource
+apiVersion: v1
+kind: Service
 metadata:
   name: app-three
 spec:

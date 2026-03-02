@@ -4,6 +4,7 @@ CLUSTER_NAME := macauchy
 ARGOCD_NS := argocd
 DEV_NS := dev
 APP_NAME := macauchy-app
+GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null || echo main)
 
 help:
 	@echo "Part 3 - K3d + Argo CD Makefile"
@@ -60,8 +61,19 @@ deploy: argocd
 		kubectl apply -f confs/argocd-app.yaml; \
 	fi
 	@echo "[→] Waiting for Argo CD to sync..."
-	@sleep 5
-	@kubectl wait --for=condition=Synced application/$(APP_NAME) -n $(ARGOCD_NS) --timeout=2m || true
+	@for i in $$(seq 1 24); do \
+		SYNC_STATUS=$$(kubectl get application $(APP_NAME) -n $(ARGOCD_NS) -o jsonpath='{.status.sync.status}' 2>/dev/null || echo "Unknown"); \
+		HEALTH_STATUS=$$(kubectl get application $(APP_NAME) -n $(ARGOCD_NS) -o jsonpath='{.status.health.status}' 2>/dev/null || echo "Unknown"); \
+		if [ "$$SYNC_STATUS" = "Synced" ]; then \
+			echo "[✓] Argo CD sync status: $$SYNC_STATUS (health: $$HEALTH_STATUS)"; \
+			break; \
+		fi; \
+		if [ $$i -eq 24 ]; then \
+			echo "[⚠] Argo CD not synced yet (last: $$SYNC_STATUS / $$HEALTH_STATUS), continuing..."; \
+		else \
+			sleep 5; \
+		fi; \
+	done
 	@echo "[→] Waiting for deployment to be ready..."
 	@kubectl rollout status deployment/macauchy-app -n $(DEV_NS) --timeout=2m || true
 	@echo "[→] Verifying deployment exists..."
@@ -99,7 +111,7 @@ upgrade: deploy
 	@echo "[→] Committing and pushing to Git..."
 	@git add confs/deployment.yaml
 	@git commit -m "upgrade: deploy v2 image" || echo "(Already committed)"
-	@git push origin master
+	@git push origin $(GIT_BRANCH)
 	@echo "[→] Waiting for Argo CD to sync..."
 	@sleep 10
 	@kubectl rollout status deployment/macauchy-app -n $(DEV_NS) --timeout=2m || true
@@ -133,7 +145,7 @@ downgrade: deploy
 	@echo "[→] Committing and pushing to Git..."
 	@git add confs/deployment.yaml
 	@git commit -m "downgrade: deploy v1 image" || echo "(Already committed)"
-	@git push origin master
+	@git push origin $(GIT_BRANCH)
 	@echo "[→] Waiting for Argo CD to sync..."
 	@sleep 10
 	@kubectl rollout status deployment/macauchy-app -n $(DEV_NS) --timeout=2m || true
@@ -195,7 +207,7 @@ scale:
 	@echo "[→] Updated deployment.yaml with replicas: $(N)"
 	@cd .. && git add p3/confs/deployment.yaml
 	@cd .. && git commit -m "Scale deployment to $(N) replicas"
-	@cd .. && git push origin master
+	@cd .. && git push origin $(GIT_BRANCH)
 	@echo "[✓] Pushed to Git. Argo CD will sync in ~3 minutes (or use 'make status' to check)"
 	@echo "[→] Waiting for Argo CD sync..."
 	@sleep 10
