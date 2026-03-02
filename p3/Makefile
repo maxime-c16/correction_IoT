@@ -88,7 +88,7 @@ verify: deploy
 		sed -i 's/wil42\/playground:v2/wil42\/playground:v1/g' confs/deployment.yaml; \
 		git add confs/deployment.yaml; \
 		git commit -m "reset: deploy v1 image for verification" || echo "(Already committed)"; \
-		git push origin $(GIT_BRANCH); \
+		git push github; \
 		echo "[→] Waiting for Argo CD to sync..."; \
 		sleep 10; \
 		kubectl rollout status deployment/macauchy-app -n $(DEV_NS) --timeout=2m || true; \
@@ -123,7 +123,7 @@ upgrade: deploy
 	@echo "[→] Committing and pushing to Git..."
 	@git add confs/deployment.yaml
 	@git commit -m "upgrade: deploy v2 image" || echo "(Already committed)"
-	@git push origin $(GIT_BRANCH)
+	@git push github
 	@echo "[→] Waiting for Argo CD to sync..."
 	@sleep 10
 	@kubectl rollout status deployment/macauchy-app -n $(DEV_NS) --timeout=2m || true
@@ -157,7 +157,7 @@ downgrade: deploy
 	@echo "[→] Committing and pushing to Git..."
 	@git add confs/deployment.yaml
 	@git commit -m "downgrade: deploy v1 image" || echo "(Already committed)"
-	@git push origin $(GIT_BRANCH)
+	@git push github
 	@echo "[→] Waiting for Argo CD to sync..."
 	@sleep 10
 	@kubectl rollout status deployment/macauchy-app -n $(DEV_NS) --timeout=2m || true
