@@ -131,7 +131,7 @@ Template configuration for Argo CD:
 
 ### argocd-app.yaml
 Argo CD Application CRD:
-- **Repository:** `https://github.com/maxime-c16/inception_of_things.git`
+- **Repository:** `https://github.com/maxime-c16/correction_IoT.git`
 - **Path:** `p3/confs/` ← Directory watched by Argo CD
 - **Destination:** `dev` namespace
 - **Sync Policy:** Automated with self-heal and prune

@@ -9,7 +9,7 @@ spec:
 
   # Source tells Argo CD where to get the manifests
   source:
-    repoURL: https://github.com/maxime-c16/inception_of_things.git
+    repoURL: https://github.com/maxime-c16/correction_IoT.git
     targetRevision: HEAD  # Always use the latest commit on this branch
     path: p3/confs        # Watch this directory for manifests
 
